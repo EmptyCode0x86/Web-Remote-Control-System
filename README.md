@@ -7,6 +7,8 @@ The **Web Remote Control System** is a high-performance, completely free, and se
 * **Live Stream & Interactive Control:** View the remote desktop and interact with the mouse/keyboard in real time.
 * **Streaming File Manager:** Transfer large files efficiently without hitting memory limits.
 * **Task Manager:** View active processes and manage them directly from the web interface.
+* **Remote Process Execution:** Instantly run commands, open files, or launch software on the remote machine.
+* **System Telemetry:** Monitor detailed hardware and software metrics (CPU, RAM, OS version) through the Computer Info dashboard.
 * **Server Manager:** A built-in tool to easily configure ports, launch the server, and generate secure client agents (stubs).
 
 ---
