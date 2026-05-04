@@ -1,4 +1,4 @@
-# OffCode Web Remote Control System 🌐
+# Web Remote Control System 🌐
 
 The **Web Remote Control System** is a high-performance, completely free, and self-hosted platform that lets you manage Windows devices directly from any web browser. Combining a lightweight Windows Agent with a modern Blazor-based control panel, you can monitor and control remote computers in real-time securely.
 
@@ -42,8 +42,24 @@ To ensure the system functions correctly, **DO NOT rename any folders or delete 
 
 Because this is a self-hosted solution, you have full control over your data. For production deployment over the internet, it is highly recommended to use a VPS (Virtual Private Server) or Docker, and place the web dashboard behind a reverse proxy (like Nginx or Cloudflare) to utilize HTTPS/WSS for an extra layer of transport security, in addition to the built-in AES-256 payload encryption.
 
-## 📄 License
-This project is provided as a free tool for personal and commercial use.
+## ⚖️ Legal Disclaimer & Terms of Use
+
+Please read and understand these terms before proceeding:
+
+*   **Important Notice:** This software is intended only for lawful, authorized use. Do not use it for illegal activity, unauthorized access, harassment, or any other criminal behavior.
+*   **User Responsibilities:** You are solely responsible for how you use this application and must comply with all applicable laws, policies, and permissions in your jurisdiction.
+*   **Prohibited Uses:**
+    *   Unauthorized access to systems or devices
+    *   Harassment, stalking, or intimidation
+    *   Any form of illegal surveillance
+    *   Disrupting business operations without permission
+    *   Violating privacy rights of others
+    *   Any activity that violates local, state, or federal laws
+*   **Liability Disclaimer:** Use at your own risk. The author(s) and distributor(s) assume no liability for misuse or any resulting damages, legal consequences, or other issues arising from the use of this software.
+
+By downloading and using this software, you acknowledge that you have read, understood, and agree to be bound by these terms and conditions.
 
 ---
-*Disclaimer: This tool is intended for legitimate administrative purposes only. Ensure you have explicit permission to access and control any device you install the agent on.*
+
+## 📄 License
+This project is provided as a free tool for personal and commercial use.
