@@ -14,6 +14,13 @@ The **Web Remote Control System** is a high-performance, completely free, and se
 
 ---
 
+## 🛠️ Prerequisites
+
+To run the Server Manager and compile the remote agent, you **must** have the .NET SDK installed on your system.
+👉 [Download .NET 9.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
+
+---
+
 ## 🚀 Getting Started
 
 Follow these steps to set up your self-hosted remote control server and create your first client agent:
@@ -39,9 +46,20 @@ To ensure the system functions correctly, **DO NOT rename any folders or delete 
 
 ---
 
+## 🌐 Connectivity & Port Forwarding
+
+If you intend to control devices over the internet (outside your local home network), you **must** expose your server so the agents can connect to it. You have several options:
+
+1. **Cloudflare Tunnels (Highly Recommended):** The most secure and easiest method. No router port forwarding is required. Cloudflare Zero Trust connects your local ports to a domain name and automatically provides HTTPS/WSS.
+2. **Port Forwarding (Router):** Manually configure your router to forward the Backend Port (and Frontend Port if you want dashboard access) to your server computer. You will need a public IP or Dynamic DNS (DDNS).
+3. **Mesh VPNs (Tailscale / ZeroTier):** Create a secure virtual local network. Install the VPN on both the server and the target devices. No public internet exposure is needed.
+4. **VPS Deployment:** Run the entire BackEnd and FrontEnd on a rented Ubuntu/Linux VPS with a reverse proxy like Nginx.
+
+---
+
 ## 🔒 Security & Deployment
 
-Because this is a self-hosted solution, you have full control over your data. For production deployment over the internet, it is highly recommended to use a VPS (Virtual Private Server) or Docker, and place the web dashboard behind a reverse proxy (like Nginx or Cloudflare) to utilize HTTPS/WSS for an extra layer of transport security, in addition to the built-in AES-256 payload encryption.
+Because this is a self-hosted solution, you have full control over your data. For production deployment over the internet, it is highly recommended to use a reverse proxy (like Nginx or Cloudflare) to utilize HTTPS/WSS for an extra layer of transport security, in addition to the built-in AES-256 payload encryption.
 
 ## ⚖️ Legal Disclaimer & Terms of Use
 
@@ -71,10 +89,10 @@ https://www.dev-offcode.com/RemoteControl.html
 
 ## CHANGELOG:
 
-**08/05/2026**
+**09/05/2026**
 **VER: 0.1**
 
-* Fixed: Empty secret key
-* Fixed: Crashing
+* Fixed: Empty secret key generation issue in Server Manager.
+* Fixed: Auto-detect project path and Server Manager crashing issues.
 
 ---
