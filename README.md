@@ -72,6 +72,7 @@ https://www.dev-offcode.com/RemoteControl.html
 ## CHANGELOG:
 
 **08/05/2026**
+**VER: 0.1**
 
 * Fixed: Empty secret key
 * Fixed: Crashing
