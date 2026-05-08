@@ -66,3 +66,14 @@ By downloading and using this software, you acknowledge that you have read, unde
 This project is provided as a free tool for personal and commercial use.
 
 https://www.dev-offcode.com/RemoteControl.html
+
+---
+
+## CHANGELOG:
+
+**08/05/2026**
+
+* -Fixed: Empty secret key
+* -Fixed: Crashing
+
+---
