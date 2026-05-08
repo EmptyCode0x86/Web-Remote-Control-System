@@ -89,7 +89,7 @@ https://www.dev-offcode.com/RemoteControl.html
 
 ## CHANGELOG:
 
-**09/05/2026**
+**08/05/2026**
 **VER: 0.1**
 
 * Fixed: Empty secret key generation issue in Server Manager.
