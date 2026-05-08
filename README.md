@@ -73,7 +73,7 @@ https://www.dev-offcode.com/RemoteControl.html
 
 **08/05/2026**
 
-* -Fixed: Empty secret key
-* -Fixed: Crashing
+* Fixed: Empty secret key
+* Fixed: Crashing
 
 ---
