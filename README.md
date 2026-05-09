@@ -111,7 +111,6 @@ https://www.dev-offcode.com/RemoteControl.html
 * Added: **Server Manager — log toggle** — Checkbox to turn application logging on or off.
 * Fixed: **Server Manager** — Stopping or restarting the **frontend** no longer stops the **backend** (independent service controls).
 * Added: **Dashboard Lock (optional)** — Cookie session for the Blazor UI, lock-aware redirects, `/authentication/continue` when lock is disabled, safe `returnUrl` handling; backend stores the dashboard password as a secure hash; short-lived **JWT** for admin **SignalR** and protected **REST** (`DeviceController`, admin `FileManager` routes); agent HTTP file endpoints (`agent-download` / `agent-upload`) remain reachable without JWT; **`configure`** requires auth or **`DASHBOARD_LOCK_ADMIN_SECRET`**.
-* Config samples: **`AES_MASTER_KEY_HEX`** default empty and example URLs use **`127.0.0.1`** in committed `.env` / `appsettings` templates (set real values for production).
 * Added: **Remove Agent** — Remote uninstall flow with confirmation; **offline queue** in SQLite (`PendingAgentCommands`) until the agent reconnects.
 * Added: **Lock settings UI** — **Dashboard** button on `/authentication/settings` opens the devices page (`/devices`).
 
