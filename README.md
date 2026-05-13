@@ -1,4 +1,4 @@
-# OffCode Web Remote Control System 0.2 🌐
+# OffCode Web Remote Control System 0.3 🌐
 
 
 The **Web Remote Control System** is a high-performance, completely free, and self-hosted platform that lets you manage Windows devices directly from any web browser. Combining a lightweight Windows Agent with a modern Blazor-based control panel, you can monitor and control remote computers in real-time securely.
@@ -6,12 +6,14 @@ The **Web Remote Control System** is a high-performance, completely free, and se
 ## ✨ Features
 * **AES-256 GCM Encryption:** All sensitive data is encrypted end-to-end.
 * **Live Stream & Interactive Control:** View the remote desktop and interact with the mouse/keyboard in real time.
+* **Share Screen (Public Viewer):** Generate a public, anonymous link to securely share the live stream of the remote device with others without giving them dashboard access.
 * **Streaming File Manager:** Transfer large files efficiently without hitting memory limits; browse all ready drives (fixed, removable, network) and jump to common folders (e.g. Desktop, Documents, Downloads, Program Files, AppData); click-to-open navigation with upload target following the current path; optional **Upload and run** toggle to open uploaded files automatically on the agent.
 * **Desktop Screenshot:** Capture preview in the control panel; **Close Image** dismisses the preview without leaving the page.
 * **Task Manager:** View active processes and manage them directly from the web interface.
 * **Power Controls:** Shut down or restart the remote device from the Task Manager panel.
 * **Software Manager:** List installed applications and uninstall them remotely using Windows Registry data.
 * **Remote Process Execution:** Instantly run commands, open files, or launch software on the remote machine.
+* **Remote Terminal & Script Manager:** Interactive PowerShell/CMD terminal directly in the browser, plus a built-in script editor. Write, save, and execute Python, PowerShell, Batch, and VBScript files securely on the remote agent without needing to transfer files manually.
 * **System Telemetry:** Monitor detailed hardware and software metrics (CPU, RAM, OS version) through the Computer Info dashboard.
 * **Device History:** Track and manage previously connected devices for quicker reconnection.
 * **Dashboard Lock (Optional):** Password gate for the admin panel (`/authentication/login`) with settings at `/authentication/settings`. The password is stored only as a secure hash on the server. The Blazor app uses a **cookie** session; successful verification also issues a short-lived **JWT** (Bearer) for **SignalR** and protected **REST** APIs (`DashboardAccess`). Agent file-transfer HTTP endpoints (`agent-download` / `agent-upload`) stay **anonymous** so agents can pull/push files. Lock **configure** requires either an authenticated dashboard session or **`DASHBOARD_LOCK_ADMIN_SECRET`**. With lock **on**, unauthenticated users are not shown dashboard pages. With lock **off**, `/authentication/continue` can establish the session without a password. Lock settings include a **Dashboard** shortcut to the devices page (`/devices`).
@@ -97,6 +99,13 @@ https://www.dev-offcode.com/RemoteControl.html
 
 ## CHANGELOG:
 
+**14/05/2026**
+**VER: 0.3**
+
+* Added: **Share Screen** - Share the agent's live stream with anyone via a secure, public link without requiring a dashboard login. The public viewer connects anonymously while your dashboard acts as the decryption relay.
+* Added: **Remote Terminal** - Fully interactive PowerShell and Command Prompt terminal directly in the web dashboard.
+* Added: **Script Manager** - Built-in code editor to write, save, and execute scripts (Python, PowerShell, Batch, VBScript) on remote agent machines. Scripts are safely stored in browser's local storage for easy reuse.
+
 **09/05/2026**
 **VER: 0.2**
 
@@ -111,6 +120,7 @@ https://www.dev-offcode.com/RemoteControl.html
 * Added: **Server Manager — log toggle** — Checkbox to turn application logging on or off.
 * Fixed: **Server Manager** — Stopping or restarting the **frontend** no longer stops the **backend** (independent service controls).
 * Added: **Dashboard Lock (optional)** — Cookie session for the Blazor UI, lock-aware redirects, `/authentication/continue` when lock is disabled, safe `returnUrl` handling; backend stores the dashboard password as a secure hash; short-lived **JWT** for admin **SignalR** and protected **REST** (`DeviceController`, admin `FileManager` routes); agent HTTP file endpoints (`agent-download` / `agent-upload`) remain reachable without JWT; **`configure`** requires auth or **`DASHBOARD_LOCK_ADMIN_SECRET`**.
+* Config samples: **`AES_MASTER_KEY_HEX`** default empty and example URLs use **`127.0.0.1`** in committed `.env` / `appsettings` templates (set real values for production).
 * Added: **Remove Agent** — Remote uninstall flow with confirmation; **offline queue** in SQLite (`PendingAgentCommands`) until the agent reconnects.
 * Added: **Lock settings UI** — **Dashboard** button on `/authentication/settings` opens the devices page (`/devices`).
 
