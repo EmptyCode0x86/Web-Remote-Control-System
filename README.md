@@ -1,4 +1,4 @@
-# OffCode Web Remote Control System 0.3 🌐
+# OffCode Web Remote Control System 0.4 🌐
 
 
 The **Web Remote Control System** is a high-performance, completely free, and self-hosted platform that lets you manage Windows devices directly from any web browser. Combining a lightweight Windows Agent with a modern Blazor-based control panel, you can monitor and control remote computers in real-time securely.
@@ -13,12 +13,12 @@ The **Web Remote Control System** is a high-performance, completely free, and se
 * **Power Controls:** Shut down or restart the remote device from the Task Manager panel.
 * **Software Manager:** List installed applications and uninstall them remotely using Windows Registry data.
 * **Remote Process Execution:** Instantly run commands, open files, or launch software on the remote machine.
-* **Remote Terminal & Script Manager:** Interactive PowerShell/CMD terminal directly in the browser, plus a built-in script editor. Write, save, and execute Python, PowerShell, Batch, and VBScript files securely on the remote agent without needing to transfer files manually.
+* **Remote Terminal & Script Manager:** Interactive PowerShell/CMD terminal directly in the browser, plus a built-in script editor. Write, save, and execute Python, PowerShell, Batch, and VBScript files securely on the remote agent. Also includes **Scheduled Script Execution**, allowing you to set an exact date and time for scripts to run automatically on the agent, managed by the backend server even if the browser dashboard is closed.
 * **System Telemetry:** Monitor detailed hardware and software metrics (CPU, RAM, OS version) through the Computer Info dashboard.
 * **Device History:** Track and manage previously connected devices for quicker reconnection.
 * **Dashboard Lock (Optional):** Password gate for the admin panel (`/authentication/login`) with settings at `/authentication/settings`. The password is stored only as a secure hash on the server. The Blazor app uses a **cookie** session; successful verification also issues a short-lived **JWT** (Bearer) for **SignalR** and protected **REST** APIs (`DashboardAccess`). Agent file-transfer HTTP endpoints (`agent-download` / `agent-upload`) stay **anonymous** so agents can pull/push files. Lock **configure** requires either an authenticated dashboard session or **`DASHBOARD_LOCK_ADMIN_SECRET`**. With lock **on**, unauthenticated users are not shown dashboard pages. With lock **off**, `/authentication/continue` can establish the session without a password. Lock settings include a **Dashboard** shortcut to the devices page (`/devices`).
 * **Remove Agent:** Disconnect a device from the dashboard and trigger remote uninstall of the agent **executable** on the target PC; if the agent is offline, the request is **queued in SQLite** and runs when it reconnects.
-* **Server Manager:** Configure ports, start the backend and frontend **independently** (stopping Frontend does not stop Backend, and vice versa), generate secure client agents (stubs), and toggle optional file logging with a single checkbox.
+* **Server Manager:** Configure ports, start the backend and frontend **independently** (stopping Frontend does not stop Backend, and vice versa), generate secure client agents (stubs), toggle optional file logging, and view the latest project changelog directly within the application.
 
 ---
 
@@ -99,12 +99,18 @@ https://www.dev-offcode.com/RemoteControl.html
 
 ## CHANGELOG:
 
+**18/05/2026**
+**VER: 0.4**
+
+* Added: **Script manager tab / Scheduled Script Execution** - which allows setting a specific date and time for a script to run automatically, independently managed by the backend server.
+* Added: **Server Manager Changelog** - In-app changelog viewer that fetches and parses the latest release notes automatically, along with a quick link to download new versions.
+
 **14/05/2026**
 **VER: 0.3**
 
 * Added: **Share Screen** - Share the agent's live stream with anyone via a secure, public link without requiring a dashboard login. The public viewer connects anonymously while your dashboard acts as the decryption relay.
 * Added: **Remote Terminal** - Fully interactive PowerShell and Command Prompt terminal directly in the web dashboard.
-* Added: **Script Manager** - Built-in code editor to write, save, and execute scripts (Python, PowerShell, Batch, VBScript) on remote agent machines. Scripts are safely stored in browser's local storage for easy reuse.
+* Added: **Script Manager** - Built-in code editor to write, save, and execute scripts (Python, PowerShell, Batch, VBScript) on remote agent machines. Includes 
 
 **09/05/2026**
 **VER: 0.2**
