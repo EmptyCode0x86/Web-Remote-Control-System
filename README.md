@@ -1,4 +1,4 @@
-# OffCode Web Remote Control System 0.4 🌐
+# OffCode Web Remote Control System 0.5 🌐
 
 
 The **Web Remote Control System** is a high-performance, completely free, and self-hosted platform that lets you manage Windows devices directly from any web browser. Combining a lightweight Windows Agent with a modern Blazor-based control panel, you can monitor and control remote computers in real-time securely.
@@ -7,14 +7,14 @@ The **Web Remote Control System** is a high-performance, completely free, and se
 * **AES-256 GCM Encryption:** All sensitive data is encrypted end-to-end.
 * **Live Stream & Interactive Control:** View the remote desktop and interact with the mouse/keyboard in real time.
 * **Share Screen (Public Viewer):** Generate a public, anonymous link to securely share the live stream of the remote device with others without giving them dashboard access.
-* **Streaming File Manager:** Transfer large files efficiently without hitting memory limits; browse all ready drives (fixed, removable, network) and jump to common folders (e.g. Desktop, Documents, Downloads, Program Files, AppData); click-to-open navigation with upload target following the current path; optional **Upload and run** toggle to open uploaded files automatically on the agent.
+* **Streaming File Manager:** Transfer large files efficiently without hitting memory limits; browse all ready drives (fixed, removable, network) and jump to common folders (e.g. Desktop, Documents, Downloads, Program Files, AppData); click-to-open navigation with upload target following the current path; optional **Upload and run** toggle to open uploaded files automatically on the agent; **File Search** by name with wildcard and recursive subdirectory support.
 * **Desktop Screenshot:** Capture preview in the control panel; **Close Image** dismisses the preview without leaving the page.
-* **Task Manager:** View active processes and manage them directly from the web interface.
+* **Task Manager & Process Blocker:** View active processes and manage them directly from the web interface. Block specific applications by name so the remote agent instantly kills them upon startup. Setting persists even if the browser dashboard is closed.
 * **Power Controls:** Shut down or restart the remote device from the Task Manager panel.
 * **Software Manager:** List installed applications and uninstall them remotely using Windows Registry data.
 * **Remote Process Execution:** Instantly run commands, open files, or launch software on the remote machine.
 * **Remote Terminal & Script Manager:** Interactive PowerShell/CMD terminal directly in the browser, plus a built-in script editor. Write, save, and execute Python, PowerShell, Batch, and VBScript files securely on the remote agent. Also includes **Scheduled Script Execution**, allowing you to set an exact date and time for scripts to run automatically on the agent, managed by the backend server even if the browser dashboard is closed.
-* **System Telemetry:** Monitor detailed hardware and software metrics (CPU, RAM, OS version) through the Computer Info dashboard.
+* **System Telemetry:** Monitor detailed hardware and software metrics (CPU, RAM, OS version, network info) through the Computer Info dashboard. **Startup Programs** panel now includes a **Remove** button on each row — deletes the entry directly from the Windows Registry (`HKCU` / `HKLM`) or the startup folder. The agent must run as Administrator to remove `HKLM` entries; the result is reported back with a toast notification.
 * **Device History:** Track and manage previously connected devices for quicker reconnection.
 * **Dashboard Lock (Optional):** Password gate for the admin panel (`/authentication/login`) with settings at `/authentication/settings`. The password is stored only as a secure hash on the server. The Blazor app uses a **cookie** session; successful verification also issues a short-lived **JWT** (Bearer) for **SignalR** and protected **REST** APIs (`DashboardAccess`). Agent file-transfer HTTP endpoints (`agent-download` / `agent-upload`) stay **anonymous** so agents can pull/push files. Lock **configure** requires either an authenticated dashboard session or **`DASHBOARD_LOCK_ADMIN_SECRET`**. With lock **on**, unauthenticated users are not shown dashboard pages. With lock **off**, `/authentication/continue` can establish the session without a password. Lock settings include a **Dashboard** shortcut to the devices page (`/devices`).
 * **Remove Agent:** Disconnect a device from the dashboard and trigger remote uninstall of the agent **executable** on the target PC; if the agent is offline, the request is **queued in SQLite** and runs when it reconnects.
@@ -99,7 +99,16 @@ https://www.dev-offcode.com/RemoteControl.html
 
 ## CHANGELOG:
 
-**18/05/2026**
+
+**13/06/2026**
+**VER: 0.5**
+
+
+* Added: **Process Blocker** — Prevent specific applications from running on the remote device. Enter the process name in the Task Manager section, and the background agent service will instantly kill it whenever it attempts to start. The blocking setting is saved directly to the Windows Registry and persists across reboots and network reconnects.
+* Added: **Startup Programs — Remove** — Each startup program entry in Computer Info now has a **Remove** button. Clicking it sends an encrypted `RequestRemoveStartupProgram` command through the hub to the agent, which deletes the registry key (`HKCU\..\Run`, `HKLM\..\Run`, or `Wow6432Node`) or the startup folder shortcut. The result is returned over the same encrypted channel and displayed as a toast notification (success / error). HKLM removal requires the agent to be running as Administrator.
+* Added: **File Manager — Search** — Search for files by name in the current directory (including subdirectories) directly from the web dashboard. Results are capped at 500 items for safety and use the encrypted SignalR tunnel for communication.
+
+**17/05/2026**
 **VER: 0.4**
 
 * Added: **Script manager tab / Scheduled Script Execution** - which allows setting a specific date and time for a script to run automatically, independently managed by the backend server.
