@@ -1,4 +1,4 @@
-# OffCode Web Remote Control System 0.5 🌐
+# OffCode Web Remote Control System 0.6 🌐
 
 
 The **Web Remote Control System** is a high-performance, completely free, and self-hosted platform that lets you manage Windows devices directly from any web browser. Combining a lightweight Windows Agent with a modern Blazor-based control panel, you can monitor and control remote computers in real-time securely.
@@ -6,6 +6,7 @@ The **Web Remote Control System** is a high-performance, completely free, and se
 ## ✨ Features
 * **AES-256 GCM Encryption:** All sensitive data is encrypted end-to-end.
 * **Live Stream & Interactive Control:** View the remote desktop and interact with the mouse/keyboard in real time.
+* **Chat:** Real-time two-way chat window between the dashboard administrator and the remote agent's user, complete with customizable administrator nickname and message history.
 * **Share Screen (Public Viewer):** Generate a public, anonymous link to securely share the live stream of the remote device with others without giving them dashboard access.
 * **Streaming File Manager:** Transfer large files efficiently without hitting memory limits; browse all ready drives (fixed, removable, network) and jump to common folders (e.g. Desktop, Documents, Downloads, Program Files, AppData); click-to-open navigation with upload target following the current path; optional **Upload and run** toggle to open uploaded files automatically on the agent; **File Search** by name with wildcard and recursive subdirectory support.
 * **Desktop Screenshot:** Capture preview in the control panel; **Close Image** dismisses the preview without leaving the page.
@@ -13,12 +14,58 @@ The **Web Remote Control System** is a high-performance, completely free, and se
 * **Power Controls:** Shut down or restart the remote device from the Task Manager panel.
 * **Software Manager:** List installed applications and uninstall them remotely using Windows Registry data.
 * **Remote Process Execution:** Instantly run commands, open files, or launch software on the remote machine.
-* **Remote Terminal & Script Manager:** Interactive PowerShell/CMD terminal directly in the browser, plus a built-in script editor. Write, save, and execute Python, PowerShell, Batch, and VBScript files securely on the remote agent. Also includes **Scheduled Script Execution**, allowing you to set an exact date and time for scripts to run automatically on the agent, managed by the backend server even if the browser dashboard is closed.
+* **Remote Terminal & Script Manager:** Interactive PowerShell/CMD terminal directly in the browser, plus a built-in script editor. Write, save, and execute Python, PowerShell, Batch, and VBScript files securely on the remote agent. Advanced features include:
+  * **Stop Script:** Safely and asynchronously terminate currently running scripts.
+  * **Download Output:** Save script execution outputs directly to a local file.
+  * **Scheduled Script Execution:** Set an exact date and time for scripts to run automatically on the agent, managed by the backend server even if the browser dashboard is closed.
 * **System Telemetry:** Monitor detailed hardware and software metrics (CPU, RAM, OS version, network info) through the Computer Info dashboard. **Startup Programs** panel now includes a **Remove** button on each row — deletes the entry directly from the Windows Registry (`HKCU` / `HKLM`) or the startup folder. The agent must run as Administrator to remove `HKLM` entries; the result is reported back with a toast notification.
 * **Device History:** Track and manage previously connected devices for quicker reconnection.
 * **Dashboard Lock (Optional):** Password gate for the admin panel (`/authentication/login`) with settings at `/authentication/settings`. The password is stored only as a secure hash on the server. The Blazor app uses a **cookie** session; successful verification also issues a short-lived **JWT** (Bearer) for **SignalR** and protected **REST** APIs (`DashboardAccess`). Agent file-transfer HTTP endpoints (`agent-download` / `agent-upload`) stay **anonymous** so agents can pull/push files. Lock **configure** requires either an authenticated dashboard session or **`DASHBOARD_LOCK_ADMIN_SECRET`**. With lock **on**, unauthenticated users are not shown dashboard pages. With lock **off**, `/authentication/continue` can establish the session without a password. Lock settings include a **Dashboard** shortcut to the devices page (`/devices`).
 * **Remove Agent:** Disconnect a device from the dashboard and trigger remote uninstall of the agent **executable** on the target PC; if the agent is offline, the request is **queued in SQLite** and runs when it reconnects.
 * **Server Manager:** Configure ports, start the backend and frontend **independently** (stopping Frontend does not stop Backend, and vice versa), generate secure client agents (stubs), toggle optional file logging, and view the latest project changelog directly within the application.
+
+---
+
+## 🔐 Security Architecture
+
+### 🛡️ Request Protection
+
+| Layer | Protection |
+|-------|------------|
+| 1 | **Request timeout** — 30s global, 10 min for file transfers, ∞ for SignalR (Slowloris protection) |
+| 2 | **Security headers** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, CORP, COOP |
+| 3 | **Request audit trail** — All authentication events logged with IP, UserAgent, risk level and PII masking |
+| 4 | **Kestrel hardening** — `RequestHeadersTimeout: 15s`, `KeepAliveTimeout: 120s`, HTTP/2 stream limit: 100 |
+| 5 | **Login rate limiting** — 8 attempts per minute per IP+UserAgent (dashboard lock) |
+| 6 | **API rate limiting** — 10 requests per minute per client (SecurityService) |
+
+### 🔒 Server-Level Security
+
+| Component | Implementation |
+|-----------|----------------|
+| **Transport encryption** | AES-256-GCM (SignalR payload E2E), TLS via reverse proxy (Cloudflare/Nginx) |
+| **Password storage (Dashboard)** | ASP.NET Identity `IPasswordHasher` → PBKDF2-SHA256 with random salt |
+| **JWT tokens** | HS256 (HMAC-SHA256), configurable expiry (5–240 min), mandatory strong key in production |
+| **JWT signing key** | Enforced minimum 32 chars; weak/default keys blocked at startup in production mode |
+| **API authentication** | JWT Bearer token with `DashboardAccess` claim required for all admin endpoints |
+| **SignalR hub auth** | `DashboardHubAuthorizationFilter` — all methods require `dashboard_access: true` claim |
+| **AES key validation** | App refuses to start if `AES_MASTER_KEY_HEX` is missing or not exactly 256 bits |
+| **SQL injection** | Entity Framework Core parameterized queries only |
+| **Error handling** | Internal exception details never exposed to HTTP clients; full details in server logs only |
+| **Audit logging** | SQLite event log — action, IP, UserAgent, risk level (Low/Medium/High/Critical), PII-masked |
+| **Brute force detection** | Automatic suspicious pattern detection (>10 failed logins or >5 rate-limit hits per hour) |
+| **Timing-safe comparison** | `FixedTimeEquals` used for admin secret verification (constant-time XOR loop) |
+| **CORS** | Configurable `ALLOWED_ORIGINS`; wildcard `*` blocked in production by default |
+
+### 🖥️ FrontEnd-Level Security
+
+| Component | Implementation |
+|-----------|----------------|
+| **Session cookie** | `RemoteControl.DashboardAuth`, SameSite=Strict, 8h expiry |
+| **Blazor Server** | WebSocket-based — not vulnerable to traditional CSRF |
+| **Return URL validation** | All `returnUrl` values validated — must start with `/`, no `//` open redirects |
+| **XSS prevention** | Blazor renders via DOM — no raw `innerHTML` injection |
+| **Content Security Policy** | Strict CSP on all pages; no unsafe-eval; limited external origins |
 
 ---
 
@@ -100,6 +147,22 @@ https://www.dev-offcode.com/RemoteControl.html
 ## CHANGELOG:
 
 
+**18/06/2026**
+**VER: 0.6**
+
+* Security: **Request Timeout / Slowloris Protection** — `RequestTimeout` middleware added (30s global, 10 min for file transfers, ∞ for SignalR). Kestrel hardened with `RequestHeadersTimeout: 15s` and `KeepAliveTimeout: 120s`. HTTP/2 stream limit set to 100 per connection.
+* Security: **Error Message Hardening** — Internal `ex.Message` no longer exposed in HTTP responses across `UserController`, `DeviceController`, and `FileManagerController` (12 locations fixed). All 500 responses now return a safe generic message; full exception details logged server-side only. Global fallback exception handler added to `BackEnd/Program.cs` with `correlationId` for log tracing.
+
+* Fixed: **Script Execution Timeout Removed** — Scripts now run indefinitely until manually stopped by the user. The previous 5-minute hard timeout (`CancellationTokenSource(TimeSpan.FromMinutes(5))`) has been removed from `ScriptExecutionService`. Output buffer size limit also removed.
+* Improved: **UI Modernization (Glassmorphism)** — The Blazor FrontEnd has been significantly upgraded with a sleek "glassmorphism" theme featuring emerald/teal accents. This applies to `LiveStream`, `DeviceControl`, `AgentSettingsPanel`, and authentication pages.
+* Fixed: **Mobile Layout** — Connected devices and history views are now fully responsive on mobile devices via a robust Flexbox layout, fixing overflowing text and stretched elements.
+* Improved: **Live Stream Viewer** — Added dynamic zoom controls allowing users to zoom in/out with the mouse wheel while tracking the cursor position. Added support for up to 240 FPS and dynamic quality settings (10-100%) for incredibly smooth playback, with 30 FPS set as the new default.
+* Fixed: **Share Screen Link Copy** — The "Copy Link" button in the Live Stream view now uses synchronous JavaScript logic for improved reliability across all environments.
+* Added: **Stealth Mode** — You can now hide the agent's tray icon directly from the "Agent settings" panel. When Stealth Mode is enabled, the agent runs silently in the background and is only visible in the Windows Task Manager.
+* Added: **Chat** — Real-time two-way chat window between the dashboard administrator and the remote agent's user, complete with customizable administrator nickname and message history.
+* Added: **Script Manager Enhancements (Job-based)** — The Remote Agent now tracks all running and completed scripts directly in its RAM. The dashboard automatically fetches this real-time status, ensuring you never lose track of a script's progress, even if you close the browser. Includes a new "Clear Recent" functionality, safe asynchronous script stopping, and the ability to download execution output.
+
+
 **13/06/2026**
 **VER: 0.5**
 
@@ -107,6 +170,8 @@ https://www.dev-offcode.com/RemoteControl.html
 * Added: **Process Blocker** — Prevent specific applications from running on the remote device. Enter the process name in the Task Manager section, and the background agent service will instantly kill it whenever it attempts to start. The blocking setting is saved directly to the Windows Registry and persists across reboots and network reconnects.
 * Added: **Startup Programs — Remove** — Each startup program entry in Computer Info now has a **Remove** button. Clicking it sends an encrypted `RequestRemoveStartupProgram` command through the hub to the agent, which deletes the registry key (`HKCU\..\Run`, `HKLM\..\Run`, or `Wow6432Node`) or the startup folder shortcut. The result is returned over the same encrypted channel and displayed as a toast notification (success / error). HKLM removal requires the agent to be running as Administrator.
 * Added: **File Manager — Search** — Search for files by name in the current directory (including subdirectories) directly from the web dashboard. Results are capped at 500 items for safety and use the encrypted SignalR tunnel for communication.
+
+
 
 **17/05/2026**
 **VER: 0.4**
