@@ -1,4 +1,4 @@
-# OffCode Web Remote Control System 0.6 🌐
+# OffCode Web Remote Control System 0.7 🌐
 
 
 The **Web Remote Control System** is a high-performance, completely free, and self-hosted platform that lets you manage Windows devices directly from any web browser. Combining a lightweight Windows Agent with a modern Blazor-based control panel, you can monitor and control remote computers in real-time securely.
@@ -20,6 +20,7 @@ The **Web Remote Control System** is a high-performance, completely free, and se
   * **Scheduled Script Execution:** Set an exact date and time for scripts to run automatically on the agent, managed by the backend server even if the browser dashboard is closed.
 * **System Telemetry:** Monitor detailed hardware and software metrics (CPU, RAM, OS version, network info) through the Computer Info dashboard. **Startup Programs** panel now includes a **Remove** button on each row — deletes the entry directly from the Windows Registry (`HKCU` / `HKLM`) or the startup folder. The agent must run as Administrator to remove `HKLM` entries; the result is reported back with a toast notification.
 * **Device History:** Track and manage previously connected devices for quicker reconnection.
+* **Agent Settings (Auto Startup Name):** In Agent settings, enabling Windows auto startup now opens a modal where you can set a custom startup name (default: `RemoteControlAgent`).
 * **Dashboard Lock (Optional):** Password gate for the admin panel (`/authentication/login`) with settings at `/authentication/settings`. The password is stored only as a secure hash on the server. The Blazor app uses a **cookie** session; successful verification also issues a short-lived **JWT** (Bearer) for **SignalR** and protected **REST** APIs (`DashboardAccess`). Agent file-transfer HTTP endpoints (`agent-download` / `agent-upload`) stay **anonymous** so agents can pull/push files. Lock **configure** requires either an authenticated dashboard session or **`DASHBOARD_LOCK_ADMIN_SECRET`**. With lock **on**, unauthenticated users are not shown dashboard pages. With lock **off**, `/authentication/continue` can establish the session without a password. Lock settings include a **Dashboard** shortcut to the devices page (`/devices`).
 * **Remove Agent:** Disconnect a device from the dashboard and trigger remote uninstall of the agent **executable** on the target PC; if the agent is offline, the request is **queued in SQLite** and runs when it reconnects.
 * **Server Manager:** Configure ports, start the backend and frontend **independently** (stopping Frontend does not stop Backend, and vice versa), generate secure client agents (stubs), toggle optional file logging, and view the latest project changelog directly within the application.
@@ -117,6 +118,53 @@ If you intend to control devices over the internet (outside your local home netw
 
 Because this is a self-hosted solution, you have full control over your data. For production deployment over the internet, it is highly recommended to use a reverse proxy (like Nginx or Cloudflare) to utilize HTTPS/WSS for an extra layer of transport security, in addition to the built-in AES-256 payload encryption.
 
+### Nginx Configuration Example
+If you are deploying behind Nginx on Windows or Linux, use the following template to properly route WebSocket (SignalR) and HTTP traffic. 
+*Ensure your ServerManager is set to use ports 8001 and 8081 so Nginx can listen on 8000 and 8080.*
+
+```nginx
+events {
+    worker_connections 1024;
+}
+
+http {
+    # FRONTEND (Nginx listens on 8000 -> Routes to C# FrontEnd on 8001)
+    server {
+        listen 8000;
+        server_name _; 
+
+        location / {
+            proxy_pass http://127.0.0.1:8001;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "Upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+
+    # BACKEND (Nginx listens on 8080 -> Routes to C# BackEnd on 8081)
+    server {
+        listen 8080;
+        server_name _; 
+
+        location / {
+            proxy_pass http://127.0.0.1:8081;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "Upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
+```
+*Note: The C# backend and frontend natively support `X-Forwarded-For` and `X-Forwarded-Proto` headers, so they will automatically log the true client IP even behind the proxy.*
+
 
 ## ⚖️ Legal Disclaimer & Terms of Use
 
@@ -147,12 +195,21 @@ https://www.dev-offcode.com/RemoteControl.html
 ## CHANGELOG:
 
 
+**20/06/2026**
+**VER: 0.7**
+
+* Added: **Reverse Proxy Support** — Built-in support for Nginx and Cloudflare Tunnels utilizing `X-Forwarded-For` and `X-Forwarded-Proto` headers. The servers now seamlessly track real client IP addresses securely when placed behind a reverse proxy.
+* Added: **Auto Startup Name modal** — Enabling Windows auto startup from Agent settings now opens a modal where you can choose a custom startup name (or keep default `RemoteControlAgent`).
+* Improved: **Live Stream Cursor Visibility** — The real system cursor from the agent machine is now rendered directly into captured livestream frames, including scaled captures.
+* Improved: **Live Stream Smoothness** — Streaming lag/stutter has been significantly reduced with pipeline optimizations, resulting in much smoother playback and fewer frame hiccups.
+* Fixed: **Remote Control Right Click** — Right-click from dashboard now correctly executes as right-click on the agent side, and right mouse button no longer triggers left-button down/up drag events.
+
+
 **18/06/2026**
 **VER: 0.6**
 
 * Security: **Request Timeout / Slowloris Protection** — `RequestTimeout` middleware added (30s global, 10 min for file transfers, ∞ for SignalR). Kestrel hardened with `RequestHeadersTimeout: 15s` and `KeepAliveTimeout: 120s`. HTTP/2 stream limit set to 100 per connection.
 * Security: **Error Message Hardening** — Internal `ex.Message` no longer exposed in HTTP responses across `UserController`, `DeviceController`, and `FileManagerController` (12 locations fixed). All 500 responses now return a safe generic message; full exception details logged server-side only. Global fallback exception handler added to `BackEnd/Program.cs` with `correlationId` for log tracing.
-
 * Fixed: **Script Execution Timeout Removed** — Scripts now run indefinitely until manually stopped by the user. The previous 5-minute hard timeout (`CancellationTokenSource(TimeSpan.FromMinutes(5))`) has been removed from `ScriptExecutionService`. Output buffer size limit also removed.
 * Improved: **UI Modernization (Glassmorphism)** — The Blazor FrontEnd has been significantly upgraded with a sleek "glassmorphism" theme featuring emerald/teal accents. This applies to `LiveStream`, `DeviceControl`, `AgentSettingsPanel`, and authentication pages.
 * Fixed: **Mobile Layout** — Connected devices and history views are now fully responsive on mobile devices via a robust Flexbox layout, fixing overflowing text and stretched elements.
